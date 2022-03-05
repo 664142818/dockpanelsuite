@@ -27,7 +27,59 @@ namespace DockSample
         {
             InitializeComponent();
             AutoScaleMode = AutoScaleMode.Dpi;
+            //SetSplashScreen();
+            CreateStandardControls();
+            showRightToLeft.Checked = (RightToLeft == RightToLeft.Yes);
+            RightToLeftLayout = showRightToLeft.Checked;
+            m_solutionExplorer.RightToLeftLayout = RightToLeftLayout;
+            m_deserializeDockContent = new DeserializeDockContent(GetContentFromPersistString);
+
+            vsToolStripExtender1.DefaultRenderer = _toolStripProfessionalRenderer;
         }
+
+        private void CreateStandardControls()
+        {
+            m_solutionExplorer = new DummySolutionExplorer();
+            m_propertyWindow = new DummyPropertyWindow();
+            m_toolbox = new DummyToolbox();
+            m_outputWindow = new DummyOutputWindow();
+            m_taskList = new DummyTaskList();
+        }
+
+        private IDockContent GetContentFromPersistString(string persistString)
+        {
+            if (persistString == typeof(DummySolutionExplorer).ToString())
+                return m_solutionExplorer;
+            else if (persistString == typeof(DummyPropertyWindow).ToString())
+                return m_propertyWindow;
+            else if (persistString == typeof(DummyToolbox).ToString())
+                return m_toolbox;
+            else if (persistString == typeof(DummyOutputWindow).ToString())
+                return m_outputWindow;
+            else if (persistString == typeof(DummyTaskList).ToString())
+                return m_taskList;
+            else
+            {
+                // DummyDoc overrides GetPersistString to add extra information into persistString.
+                // Any DockContent may override this value to add any needed information for deserialization.
+
+                string[] parsedStrings = persistString.Split(new char[] { ',' });
+                if (parsedStrings.Length != 3)
+                    return null;
+
+                if (parsedStrings[0] != typeof(DummyDoc).ToString())
+                    return null;
+
+                DummyDoc dummyDoc = new DummyDoc();
+                if (parsedStrings[1] != string.Empty)
+                    dummyDoc.FileName = parsedStrings[1];
+                if (parsedStrings[2] != string.Empty)
+                    dummyDoc.Text = parsedStrings[2];
+
+                return dummyDoc;
+            }
+        }
+
 
         private void menuItemNew_Click(object sender, EventArgs e)
         {
