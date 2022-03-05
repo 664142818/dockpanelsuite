@@ -13,9 +13,20 @@ namespace DockSample
 {
     public partial class MainFormTest : Form
     {
+        private bool m_bSaveLayout = true;
+        private DeserializeDockContent m_deserializeDockContent;
+        private DummySolutionExplorer m_solutionExplorer;
+        private DummyPropertyWindow m_propertyWindow;
+        private DummyToolbox m_toolbox;
+        private DummyOutputWindow m_outputWindow;
+        private DummyTaskList m_taskList;
+        private bool _showSplash;
+        private SplashScreen _splashScreen;
+
         public MainFormTest()
         {
             InitializeComponent();
+            AutoScaleMode = AutoScaleMode.Dpi;
         }
 
         private void menuItemNew_Click(object sender, EventArgs e)
@@ -187,6 +198,42 @@ namespace DockSample
             DummySolutionExplorer m_solutionExplorer = new DummySolutionExplorer();
             m_solutionExplorer.RightToLeftLayout = RightToLeftLayout;
             m_solutionExplorer.Show(dockPanel);
+        }
+
+        private void SetSplashScreen()
+        {
+
+            _showSplash = true;
+            _splashScreen = new SplashScreen();
+
+            ResizeSplash();
+            _splashScreen.Visible = true;
+            _splashScreen.TopMost = true;
+
+            Timer _timer = new Timer();
+            _timer.Tick += (sender, e) =>
+            {
+                _splashScreen.Visible = false;
+                _timer.Enabled = false;
+                _showSplash = false;
+            };
+            _timer.Interval = 4000;
+            _timer.Enabled = true;
+        }
+
+        private void ResizeSplash()
+        {
+            if (_showSplash)
+            {
+
+                var centerXMain = (this.Location.X + this.Width) / 2.0;
+                var LocationXSplash = Math.Max(0, centerXMain - (_splashScreen.Width / 2.0));
+
+                var centerYMain = (this.Location.Y + this.Height) / 2.0;
+                var LocationYSplash = Math.Max(0, centerYMain - (_splashScreen.Height / 2.0));
+
+                _splashScreen.Location = new Point((int)Math.Round(LocationXSplash), (int)Math.Round(LocationYSplash));
+            }
         }
     }
 }
