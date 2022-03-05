@@ -169,11 +169,6 @@ namespace DockSample
             dockPanel.SaveAsXml(configFile);
             CloseAllContents();
 
-            //WeifenLuo.WinFormsUI.Docking.VS2005Theme vS2005Theme1 = new VS2005Theme();
-            //this.dockPanel.Theme = vS2005Theme1;
-            //this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2005, vS2005Theme1);
-
-
             //if (sender == this.menuItemSchemaVS2005)
             //{
             //    this.dockPanel.Theme = this.vS2005Theme1;
