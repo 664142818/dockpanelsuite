@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Windows.Forms;
 using WeifenLuo.WinFormsUI.Docking;
@@ -26,9 +27,12 @@ namespace DockSample
         public MainFormTest()
         {
             InitializeComponent();
+
             AutoScaleMode = AutoScaleMode.Dpi;
-            //SetSplashScreen();
+
+            SetSplashScreen();
             CreateStandardControls();
+
             showRightToLeft.Checked = (RightToLeft == RightToLeft.Yes);
             RightToLeftLayout = showRightToLeft.Checked;
             m_solutionExplorer.RightToLeftLayout = RightToLeftLayout;
@@ -37,13 +41,67 @@ namespace DockSample
             vsToolStripExtender1.DefaultRenderer = _toolStripProfessionalRenderer;
         }
 
-        private void CreateStandardControls()
+        #region Methods
+
+        private IDockContent FindDocument(string text)
         {
-            m_solutionExplorer = new DummySolutionExplorer();
-            m_propertyWindow = new DummyPropertyWindow();
-            m_toolbox = new DummyToolbox();
-            m_outputWindow = new DummyOutputWindow();
-            m_taskList = new DummyTaskList();
+            if (dockPanel.DocumentStyle == DocumentStyle.SystemMdi)
+            {
+                foreach (Form form in MdiChildren)
+                    if (form.Text == text)
+                        return form as IDockContent;
+
+                return null;
+            }
+            else
+            {
+                foreach (IDockContent content in dockPanel.Documents)
+                    if (content.DockHandler.TabText == text)
+                        return content;
+
+                return null;
+            }
+        }
+
+        private DummyDoc CreateNewDocument()
+        {
+            DummyDoc dummyDoc = new DummyDoc();
+
+            int count = 1;
+            string text = $"Document{count}";
+            while (FindDocument(text) != null)
+            {
+                count++;
+                text = $"Document{count}";
+            }
+
+            dummyDoc.Text = text;
+            return dummyDoc;
+        }
+
+        private DummyDoc CreateNewDocument(string text)
+        {
+            DummyDoc dummyDoc = new DummyDoc();
+            dummyDoc.Text = text;
+            return dummyDoc;
+        }
+
+        private void CloseAllDocuments()
+        {
+            if (dockPanel.DocumentStyle == DocumentStyle.SystemMdi)
+            {
+                foreach (Form form in MdiChildren)
+                    form.Close();
+            }
+            else
+            {
+                foreach (IDockContent document in dockPanel.DocumentsToArray())
+                {
+                    // IMPORANT: dispose all panes.
+                    document.DockHandler.DockPanel = null;
+                    document.DockHandler.Close();
+                }
+            }
         }
 
         private IDockContent GetContentFromPersistString(string persistString)
@@ -80,69 +138,14 @@ namespace DockSample
             }
         }
 
-
-        private void menuItemNew_Click(object sender, EventArgs e)
-        {
-            DummyDoc dummyDoc = CreateNewDocument();
-            if (dockPanel.DocumentStyle == DocumentStyle.SystemMdi)
-            {
-                dummyDoc.MdiParent = this;
-                dummyDoc.Show();
-            }
-            else
-                dummyDoc.Show(dockPanel);
-        }
-        private DummyDoc CreateNewDocument()
-        {
-            DummyDoc dummyDoc = new DummyDoc();
-
-            int count = 1;
-            string text = $"Document{count}";
-            while (FindDocument(text) != null)
-            {
-                count++;
-                text = $"Document{count}";
-            }
-
-            dummyDoc.Text = text;
-            return dummyDoc;
-        }
-
-        private IDockContent FindDocument(string text)
-        {
-            if (dockPanel.DocumentStyle == DocumentStyle.SystemMdi)
-            {
-                foreach (Form form in MdiChildren)
-                    if (form.Text == text)
-                        return form as IDockContent;
-
-                return null;
-            }
-            else
-            {
-                foreach (IDockContent content in dockPanel.Documents)
-                    if (content.DockHandler.TabText == text)
-                        return content;
-
-                return null;
-            }
-        }
-
-        private void MainFormTest_Load(object sender, EventArgs e)
-        {
-            SetSchema(null, null);
-        }
-
-       
-
         private void CloseAllContents()
         {
             // we don't want to create another instance of tool window, set DockPanel to null
-            //m_solutionExplorer.DockPanel = null;
-            //m_propertyWindow.DockPanel = null;
-            //m_toolbox.DockPanel = null;
-            //m_outputWindow.DockPanel = null;
-            //m_taskList.DockPanel = null;
+            m_solutionExplorer.DockPanel = null;
+            m_propertyWindow.DockPanel = null;
+            m_toolbox.DockPanel = null;
+            m_outputWindow.DockPanel = null;
+            m_taskList.DockPanel = null;
 
             // Close all other document windows
             CloseAllDocuments();
@@ -166,9 +169,66 @@ namespace DockSample
             dockPanel.SaveAsXml(configFile);
             CloseAllContents();
 
-            WeifenLuo.WinFormsUI.Docking.VS2005Theme vS2005Theme1 = new VS2005Theme();
-            this.dockPanel.Theme = vS2005Theme1;
-            this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2005, vS2005Theme1);
+            //WeifenLuo.WinFormsUI.Docking.VS2005Theme vS2005Theme1 = new VS2005Theme();
+            //this.dockPanel.Theme = vS2005Theme1;
+            //this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2005, vS2005Theme1);
+
+
+            //if (sender == this.menuItemSchemaVS2005)
+            //{
+            //    this.dockPanel.Theme = this.vS2005Theme1;
+            //    this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2005, vS2005Theme1);
+            //}
+            //else if (sender == this.menuItemSchemaVS2003)
+            //{
+            //    this.dockPanel.Theme = this.vS2003Theme1;
+            //    this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2003, vS2003Theme1);
+            //}
+            //else if (sender == this.menuItemSchemaVS2012Light)
+            //{
+            //    this.dockPanel.Theme = this.vS2012LightTheme1;
+            //    this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2012, vS2012LightTheme1);
+            //}
+            //else if (sender == this.menuItemSchemaVS2012Blue)
+            //{
+            //    this.dockPanel.Theme = this.vS2012BlueTheme1;
+            //    this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2012, vS2012BlueTheme1);
+            //}
+            //else if (sender == this.menuItemSchemaVS2012Dark)
+            //{
+            //    this.dockPanel.Theme = this.vS2012DarkTheme1;
+            //    this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2012, vS2012DarkTheme1);
+            //}
+            //else if (sender == this.menuItemSchemaVS2013Blue)
+            //{
+            //    this.dockPanel.Theme = this.vS2013BlueTheme1;
+            //    this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2013, vS2013BlueTheme1);
+            //}
+            //else if (sender == this.menuItemSchemaVS2013Light)
+            //{
+            //    this.dockPanel.Theme = this.vS2013LightTheme1;
+            //    this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2013, vS2013LightTheme1);
+            //}
+            //else if (sender == this.menuItemSchemaVS2013Dark)
+            //{
+            //    this.dockPanel.Theme = this.vS2013DarkTheme1;
+            //    this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2013, vS2013DarkTheme1);
+            //}
+            //else if (sender == this.menuItemSchemaVS2015Blue)
+            //{
+            //    this.dockPanel.Theme = this.vS2015BlueTheme1;
+            //    this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2015, vS2015BlueTheme1);
+            //}
+            //else if (sender == this.menuItemSchemaVS2015Light)
+            //{
+            //    this.dockPanel.Theme = this.vS2015LightTheme1;
+            //    this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2015, vS2015LightTheme1);
+            //}
+            //else if (sender == this.menuItemSchemaVS2015Dark)
+            //{
+            //    this.dockPanel.Theme = this.vS2015DarkTheme1;
+            //    this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2015, vS2015DarkTheme1);
+            //}
 
             menuItemSchemaVS2005.Checked = (sender == menuItemSchemaVS2005);
             menuItemSchemaVS2003.Checked = (sender == menuItemSchemaVS2003);
@@ -186,8 +246,8 @@ namespace DockSample
                 //statusBar.BackColor = dockPanel.Theme.ColorPalette.MainWindowStatusBarDefault.Background;
             }
 
-            //if (File.Exists(configFile))
-            //    dockPanel.LoadFromXml(configFile, m_deserializeDockContent);
+            if (File.Exists(configFile))
+                dockPanel.LoadFromXml(configFile, m_deserializeDockContent);
         }
 
         private void EnableVSRenderer(VisualStudioToolStripExtender.VsVersion version, ThemeBase theme)
@@ -227,29 +287,221 @@ namespace DockSample
             //toolBarButtonLayoutByXml.Enabled = (newStyle != DocumentStyle.SystemMdi);
         }
 
-        private void CloseAllDocuments()
+        #endregion
+
+        #region Event Handlers
+
+        private void menuItemExit_Click(object sender, System.EventArgs e)
         {
+            Close();
+        }
+
+        private void menuItemSolutionExplorer_Click(object sender, System.EventArgs e)
+        {
+            m_solutionExplorer.Show(dockPanel);
+        }
+
+        private void menuItemPropertyWindow_Click(object sender, System.EventArgs e)
+        {
+            m_propertyWindow.Show(dockPanel);
+        }
+
+        private void menuItemToolbox_Click(object sender, System.EventArgs e)
+        {
+            m_toolbox.Show(dockPanel);
+        }
+
+        private void menuItemOutputWindow_Click(object sender, System.EventArgs e)
+        {
+            m_outputWindow.Show(dockPanel);
+        }
+
+        private void menuItemTaskList_Click(object sender, System.EventArgs e)
+        {
+            m_taskList.Show(dockPanel);
+        }
+
+        private void menuItemAbout_Click(object sender, System.EventArgs e)
+        {
+            AboutDialog aboutDialog = new AboutDialog();
+            aboutDialog.ShowDialog(this);
+        }
+
+        private void menuItemNew_Click(object sender, System.EventArgs e)
+        {
+            DummyDoc dummyDoc = CreateNewDocument();
             if (dockPanel.DocumentStyle == DocumentStyle.SystemMdi)
             {
-                foreach (Form form in MdiChildren)
-                    form.Close();
+                dummyDoc.MdiParent = this;
+                dummyDoc.Show();
             }
             else
+                dummyDoc.Show(dockPanel);
+        }
+
+        private void menuItemOpen_Click(object sender, System.EventArgs e)
+        {
+            OpenFileDialog openFile = new OpenFileDialog();
+
+            openFile.InitialDirectory = Application.ExecutablePath;
+            openFile.Filter = "rtf files (*.rtf)|*.rtf|txt files (*.txt)|*.txt|All files (*.*)|*.*";
+            openFile.FilterIndex = 1;
+            openFile.RestoreDirectory = true;
+
+            if (openFile.ShowDialog() == DialogResult.OK)
             {
-                foreach (IDockContent document in dockPanel.DocumentsToArray())
+                string fullName = openFile.FileName;
+                string fileName = Path.GetFileName(fullName);
+
+                if (FindDocument(fileName) != null)
                 {
-                    // IMPORANT: dispose all panes.
-                    document.DockHandler.DockPanel = null;
-                    document.DockHandler.Close();
+                    MessageBox.Show("The document: " + fileName + " has already opened!");
+                    return;
                 }
+
+                DummyDoc dummyDoc = new DummyDoc();
+                dummyDoc.Text = fileName;
+                if (dockPanel.DocumentStyle == DocumentStyle.SystemMdi)
+                {
+                    dummyDoc.MdiParent = this;
+                    dummyDoc.Show();
+                }
+                else
+                    dummyDoc.Show(dockPanel);
+                try
+                {
+                    dummyDoc.FileName = fullName;
+                }
+                catch (Exception exception)
+                {
+                    dummyDoc.Close();
+                    MessageBox.Show(exception.Message);
+                }
+
             }
         }
 
-        private void menuItemSolutionExplorer_Click(object sender, EventArgs e)
+        private void menuItemFile_Popup(object sender, System.EventArgs e)
         {
-            DummySolutionExplorer m_solutionExplorer = new DummySolutionExplorer();
-            m_solutionExplorer.RightToLeftLayout = RightToLeftLayout;
-            m_solutionExplorer.Show(dockPanel);
+            if (dockPanel.DocumentStyle == DocumentStyle.SystemMdi)
+            {
+                menuItemClose.Enabled =
+                    menuItemCloseAll.Enabled =
+                    menuItemCloseAllButThisOne.Enabled = (ActiveMdiChild != null);
+            }
+            else
+            {
+                menuItemClose.Enabled = (dockPanel.ActiveDocument != null);
+                menuItemCloseAll.Enabled =
+                    menuItemCloseAllButThisOne.Enabled = (dockPanel.DocumentsCount > 0);
+            }
+        }
+
+        private void menuItemClose_Click(object sender, System.EventArgs e)
+        {
+            if (dockPanel.DocumentStyle == DocumentStyle.SystemMdi)
+                ActiveMdiChild.Close();
+            else if (dockPanel.ActiveDocument != null)
+                dockPanel.ActiveDocument.DockHandler.Close();
+        }
+
+        private void menuItemCloseAll_Click(object sender, System.EventArgs e)
+        {
+            CloseAllDocuments();
+        }
+
+        private void MainFormTest_Load(object sender, System.EventArgs e)
+        {
+            SetSchema(this.menuItemSchemaVS2013Blue, null);
+
+            string configFile = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "DockPanel.config");
+
+            if (File.Exists(configFile))
+                dockPanel.LoadFromXml(configFile, m_deserializeDockContent);
+        }
+
+        private void MainFormTest_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            string configFile = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "DockPanel.config");
+            if (m_bSaveLayout)
+                dockPanel.SaveAsXml(configFile);
+            else if (File.Exists(configFile))
+                File.Delete(configFile);
+        }
+
+        private void menuItemToolBar_Click(object sender, System.EventArgs e)
+        {
+            //toolBar.Visible = menuItemToolBar.Checked = !menuItemToolBar.Checked;
+        }
+
+        private void menuItemStatusBar_Click(object sender, System.EventArgs e)
+        {
+            //statusBar.Visible = menuItemStatusBar.Checked = !menuItemStatusBar.Checked;
+        }
+
+        private void toolBar_ButtonClick(object sender, System.Windows.Forms.ToolStripItemClickedEventArgs e)
+        {
+            //if (e.ClickedItem == toolBarButtonNew)
+            //    menuItemNew_Click(null, null);
+            //else if (e.ClickedItem == toolBarButtonOpen)
+            //    menuItemOpen_Click(null, null);
+            //else if (e.ClickedItem == toolBarButtonSolutionExplorer)
+            //    menuItemSolutionExplorer_Click(null, null);
+            //else if (e.ClickedItem == toolBarButtonPropertyWindow)
+            //    menuItemPropertyWindow_Click(null, null);
+            //else if (e.ClickedItem == toolBarButtonToolbox)
+            //    menuItemToolbox_Click(null, null);
+            //else if (e.ClickedItem == toolBarButtonOutputWindow)
+            //    menuItemOutputWindow_Click(null, null);
+            //else if (e.ClickedItem == toolBarButtonTaskList)
+            //    menuItemTaskList_Click(null, null);
+            //else if (e.ClickedItem == toolBarButtonLayoutByCode)
+            //    menuItemLayoutByCode_Click(null, null);
+            //else if (e.ClickedItem == toolBarButtonLayoutByXml)
+            //    menuItemLayoutByXml_Click(null, null);
+        }
+
+        private void menuItemNewWindow_Click(object sender, System.EventArgs e)
+        {
+            MainFormTest newWindow = new MainFormTest();
+            newWindow.Text = newWindow.Text + " - New";
+            newWindow.Show();
+        }
+
+        private void menuItemTools_Popup(object sender, System.EventArgs e)
+        {
+            menuItemLockLayout.Checked = !this.dockPanel.AllowEndUserDocking;
+        }
+
+        private void menuItemLockLayout_Click(object sender, System.EventArgs e)
+        {
+            dockPanel.AllowEndUserDocking = !dockPanel.AllowEndUserDocking;
+        }
+
+        private void menuItemLayoutByCode_Click(object sender, System.EventArgs e)
+        {
+            dockPanel.SuspendLayout(true);
+
+            CloseAllContents();
+
+            CreateStandardControls();
+
+            m_solutionExplorer.Show(dockPanel, DockState.DockRight);
+            m_propertyWindow.Show(m_solutionExplorer.Pane, m_solutionExplorer);
+            m_toolbox.Show(dockPanel, new Rectangle(98, 133, 200, 383));
+            m_outputWindow.Show(m_solutionExplorer.Pane, DockAlignment.Bottom, 0.35);
+            m_taskList.Show(m_toolbox.Pane, DockAlignment.Left, 0.4);
+
+            DummyDoc doc1 = CreateNewDocument("Document1");
+            DummyDoc doc2 = CreateNewDocument("Document2");
+            DummyDoc doc3 = CreateNewDocument("Document3");
+            DummyDoc doc4 = CreateNewDocument("Document4");
+            doc1.Show(dockPanel, DockState.Document);
+            doc2.Show(doc1.Pane, null);
+            doc3.Show(doc1.Pane, DockAlignment.Bottom, 0.5);
+            doc4.Show(doc3.Pane, DockAlignment.Right, 0.5);
+
+            dockPanel.ResumeLayout(true, true);
         }
 
         private void SetSplashScreen()
@@ -286,6 +538,89 @@ namespace DockSample
 
                 _splashScreen.Location = new Point((int)Math.Round(LocationXSplash), (int)Math.Round(LocationYSplash));
             }
+        }
+
+        private void CreateStandardControls()
+        {
+            m_solutionExplorer = new DummySolutionExplorer();
+            m_propertyWindow = new DummyPropertyWindow();
+            m_toolbox = new DummyToolbox();
+            m_outputWindow = new DummyOutputWindow();
+            m_taskList = new DummyTaskList();
+        }
+
+        private void menuItemLayoutByXml_Click(object sender, System.EventArgs e)
+        {
+            dockPanel.SuspendLayout(true);
+
+            // In order to load layout from XML, we need to close all the DockContents
+            CloseAllContents();
+
+            CreateStandardControls();
+
+            Assembly assembly = Assembly.GetAssembly(typeof(MainFormTest));
+            Stream xmlStream = assembly.GetManifestResourceStream("DockSample.Resources.DockPanel.xml");
+            dockPanel.LoadFromXml(xmlStream, m_deserializeDockContent);
+            xmlStream.Close();
+
+            dockPanel.ResumeLayout(true, true);
+        }
+
+        private void menuItemCloseAllButThisOne_Click(object sender, System.EventArgs e)
+        {
+            if (dockPanel.DocumentStyle == DocumentStyle.SystemMdi)
+            {
+                Form activeMdi = ActiveMdiChild;
+                foreach (Form form in MdiChildren)
+                {
+                    if (form != activeMdi)
+                        form.Close();
+                }
+            }
+            else
+            {
+                foreach (IDockContent document in dockPanel.DocumentsToArray())
+                {
+                    if (!document.DockHandler.IsActivated)
+                        document.DockHandler.Close();
+                }
+            }
+        }
+
+        private void menuItemShowDocumentIcon_Click(object sender, System.EventArgs e)
+        {
+            dockPanel.ShowDocumentIcon = menuItemShowDocumentIcon.Checked = !menuItemShowDocumentIcon.Checked;
+        }
+
+        private void showRightToLeft_Click(object sender, EventArgs e)
+        {
+            CloseAllContents();
+            if (showRightToLeft.Checked)
+            {
+                this.RightToLeft = RightToLeft.No;
+                this.RightToLeftLayout = false;
+            }
+            else
+            {
+                this.RightToLeft = RightToLeft.Yes;
+                this.RightToLeftLayout = true;
+            }
+            m_solutionExplorer.RightToLeftLayout = this.RightToLeftLayout;
+            showRightToLeft.Checked = !showRightToLeft.Checked;
+        }
+
+        private void exitWithoutSavingLayout_Click(object sender, EventArgs e)
+        {
+            m_bSaveLayout = false;
+            Close();
+            m_bSaveLayout = true;
+        }
+
+        #endregion
+
+        private void MainFormTest_SizeChanged(object sender, EventArgs e)
+        {
+            ResizeSplash();
         }
     }
 }
