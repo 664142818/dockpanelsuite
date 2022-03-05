@@ -30,7 +30,7 @@ namespace DockSample
 
             AutoScaleMode = AutoScaleMode.Dpi;
 
-            SetSplashScreen();
+            //SetSplashScreen();
             CreateStandardControls();
 
             showRightToLeft.Checked = (RightToLeft == RightToLeft.Yes);
@@ -230,17 +230,21 @@ namespace DockSample
             //    this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2015, vS2015DarkTheme1);
             //}
 
-            menuItemSchemaVS2005.Checked = (sender == menuItemSchemaVS2005);
-            menuItemSchemaVS2003.Checked = (sender == menuItemSchemaVS2003);
-            menuItemSchemaVS2012Light.Checked = (sender == menuItemSchemaVS2012Light);
-            menuItemSchemaVS2012Blue.Checked = (sender == menuItemSchemaVS2012Blue);
-            menuItemSchemaVS2012Dark.Checked = (sender == menuItemSchemaVS2012Dark);
-            menuItemSchemaVS2013Light.Checked = (sender == menuItemSchemaVS2013Light);
+            WeifenLuo.WinFormsUI.Docking.VS2013BlueTheme vS2013BlueTheme1 = new WeifenLuo.WinFormsUI.Docking.VS2013BlueTheme();
+            this.dockPanel.Theme = vS2013BlueTheme1;
+            this.EnableVSRenderer(VisualStudioToolStripExtender.VsVersion.Vs2013, vS2013BlueTheme1);
+
+            //menuItemSchemaVS2005.Checked = (sender == menuItemSchemaVS2005);
+            //menuItemSchemaVS2003.Checked = (sender == menuItemSchemaVS2003);
+            //menuItemSchemaVS2012Light.Checked = (sender == menuItemSchemaVS2012Light);
+            //menuItemSchemaVS2012Blue.Checked = (sender == menuItemSchemaVS2012Blue);
+            //menuItemSchemaVS2012Dark.Checked = (sender == menuItemSchemaVS2012Dark);
+            //menuItemSchemaVS2013Light.Checked = (sender == menuItemSchemaVS2013Light);
             menuItemSchemaVS2013Blue.Checked = (sender == menuItemSchemaVS2013Blue);
-            menuItemSchemaVS2013Dark.Checked = (sender == menuItemSchemaVS2013Dark);
-            menuItemSchemaVS2015Light.Checked = (sender == menuItemSchemaVS2015Light);
-            menuItemSchemaVS2015Blue.Checked = (sender == menuItemSchemaVS2015Blue);
-            menuItemSchemaVS2015Dark.Checked = (sender == menuItemSchemaVS2015Dark);
+            //menuItemSchemaVS2013Dark.Checked = (sender == menuItemSchemaVS2013Dark);
+            //menuItemSchemaVS2015Light.Checked = (sender == menuItemSchemaVS2015Light);
+            //menuItemSchemaVS2015Blue.Checked = (sender == menuItemSchemaVS2015Blue);
+            //menuItemSchemaVS2015Dark.Checked = (sender == menuItemSchemaVS2015Dark);
             if (dockPanel.Theme.ColorPalette != null)
             {
                 //statusBar.BackColor = dockPanel.Theme.ColorPalette.MainWindowStatusBarDefault.Background;
