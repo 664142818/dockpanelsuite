@@ -235,7 +235,7 @@ namespace DockSample
             //menuItemSchemaVS2012Blue.Checked = (sender == menuItemSchemaVS2012Blue);
             //menuItemSchemaVS2012Dark.Checked = (sender == menuItemSchemaVS2012Dark);
             //menuItemSchemaVS2013Light.Checked = (sender == menuItemSchemaVS2013Light);
-            menuItemSchemaVS2013Blue.Checked = (sender == menuItemSchemaVS2013Blue);
+            //menuItemSchemaVS2013Blue.Checked = (sender == menuItemSchemaVS2013Blue);
             //menuItemSchemaVS2013Dark.Checked = (sender == menuItemSchemaVS2013Dark);
             //menuItemSchemaVS2015Light.Checked = (sender == menuItemSchemaVS2015Light);
             //menuItemSchemaVS2015Blue.Checked = (sender == menuItemSchemaVS2015Blue);
